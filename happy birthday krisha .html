@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Happy Birthday, My friend</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;700&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --rose: #e8a0b0;
+    --rose-deep: #c06080;
+    --cream: #fdf6ee;
+    --ink: #1a0a10;
+    --glass: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,220,180,0.18);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #080308;
+    color: var(--cream);
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ── CANVAS FIREWORKS ── */
+  #fireworks-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── PARTICLE FIELD ── */
+  #particle-field {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--gold-light);
+    opacity: 0;
+    animation: drift linear infinite;
+  }
+
+  @keyframes drift {
+    0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+    10%  { opacity: 0.7; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+  }
+
+  /* ── CINEMATIC OVERLAY ── */
+  #cinematic-bars {
+    position: fixed; inset: 0; z-index: 100;
+    pointer-events: none;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  .bar-top, .bar-bottom {
+    height: 70px;
+    background: #000;
+    transition: height 1.8s cubic-bezier(0.77,0,0.18,1);
+  }
+
+  .bar-top.open, .bar-bottom.open { height: 0; }
+
+  /* ── PRELOADER ── */
+  #preloader {
+    position: fixed; inset: 0; z-index: 999;
+    background: #080308;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity 0.8s ease;
+  }
+
+  #preloader.fade-out { opacity: 0; pointer-events: none; }
+
+  .pre-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(12px, 3vw, 18px);
+    letter-spacing: 8px;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeInUp 1s 0.5s ease forwards;
+  }
+
+  .pre-line {
+    width: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 20px auto;
+    animation: expandLine 1.5s 1s ease forwards;
+  }
+
+  .pre-sub {
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--rose);
+    opacity: 0;
+    animation: fadeInUp 1s 1.5s ease forwards;
+  }
+
+  @keyframes expandLine {
+    to { width: 200px; }
+  }
+
+  /* ── MAIN WRAPPER ── */
+  main {
+    position: relative; z-index: 10;
+  }
+
+  /* ── SECTION BASE ── */
+  section {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 80px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── SCENE 1: OPENING ── */
+  #scene-opening {
+    background: radial-gradient(ellipse at 50% 60%, #2a0a18 0%, #080308 70%);
+  }
+
+  .opening-date {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeInUp 1s 3s ease forwards;
+  }
+
+  .opening-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(48px, 12vw, 120px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 0.9;
+    text-align: center;
+    margin: 24px 0;
+    opacity: 0;
+    animation: fadeInUp 1.2s 3.3s ease forwards;
+  }
+
+  .opening-title em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--rose));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+  }
+
+  .opening-sub {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(10px, 2vw, 14px);
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: var(--rose);
+    opacity: 0;
+    animation: fadeInUp 1s 3.8s ease forwards;
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 40px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; opacity: 0;
+    animation: fadeInUp 1s 5s ease forwards;
+  }
+
+  .scroll-hint span {
+    font-size: 10px; letter-spacing: 4px;
+    text-transform: uppercase; color: var(--gold);
+  }
+
+  .scroll-arrow {
+    width: 20px; height: 20px;
+    border-right: 1px solid var(--gold);
+    border-bottom: 1px solid var(--gold);
+    transform: rotate(45deg);
+    animation: bounce 1.5s infinite;
+  }
+
+  @keyframes bounce {
+    0%,100% { transform: rotate(45deg) translateY(0); }
+    50% { transform: rotate(45deg) translateY(6px); }
+  }
+
+  /* ── ROSE PETALS ── */
+  .petal {
+    position: absolute;
+    width: 12px; height: 18px;
+    background: radial-gradient(ellipse, var(--rose-deep), #8b0030);
+    border-radius: 60% 40% 50% 50%;
+    opacity: 0;
+    animation: petalFall linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes petalFall {
+    0% { opacity: 0; transform: translateY(-60px) rotate(0deg) scale(0.5); }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.4; }
+    100% { opacity: 0; transform: translateY(110vh) rotate(720deg) scale(1); }
+  }
+
+  /* ── SCENE 2: STORY ── */
+  #scene-story {
+    background: linear-gradient(180deg, #080308 0%, #0d050f 50%, #080308 100%);
+  }
+
+  .chapter-label {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    opacity: 0.7;
+  }
+
+  .story-block {
+    max-width: 640px;
+    text-align: center;
+  }
+
+  .story-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(24px, 5vw, 48px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.4;
+    color: var(--cream);
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .story-quote::before {
+    content: '\201C';
+    position: absolute; top: -20px; left: -20px;
+    font-size: 100px;
+    color: var(--gold);
+    opacity: 0.15;
+    font-family: 'Cormorant Garamond', serif;
+    line-height: 1;
+  }
+
+  .story-body {
+    font-size: clamp(14px, 2vw, 17px);
+    line-height: 2;
+    color: rgba(253,246,238,0.7);
+    max-width: 520px;
+    margin: 0 auto 40px;
+  }
+
+  .gold-line {
+    width: 80px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 40px;
+  }
+
+  /* ── HEART BEAT ── */
+  .heart-wrap {
+    margin: 40px 0;
+    position: relative;
+  }
+
+  .heart-svg {
+    width: 80px; height: 80px;
+    animation: heartbeat 1.2s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(200,80,100,0.8));
+  }
+
+  @keyframes heartbeat {
+    0%,100% { transform: scale(1); }
+    14% { transform: scale(1.15); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.1); }
+    70% { transform: scale(1); }
+  }
+
+  /* ── SCENE 3: MEMORIES ── */
+  #scene-memories {
+    background: radial-gradient(ellipse at 30% 50%, #1a0520 0%, #080308 70%);
+  }
+
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 640px;
+    width: 100%;
+    margin: 40px 0;
+  }
+
+  .memory-card {
+    aspect-ratio: 1;
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.4s ease, border-color 0.4s ease;
+    cursor: default;
+  }
+
+  .memory-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(201,168,76,0.15), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .memory-card:hover { transform: translateY(-4px); border-color: var(--gold); }
+  .memory-card:hover::before { opacity: 1; }
+
+  .memory-icon { font-size: 28px; margin-bottom: 10px; }
+  .memory-text {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(253,246,238,0.7);
+    line-height: 1.5;
+  }
+
+  /* ── SCENE 4: WISH ── */
+  #scene-wish {
+    background: radial-gradient(ellipse at 50% 40%, #250010 0%, #080308 70%);
+  }
+
+  .wish-container {
+    max-width: 680px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .wish-heading {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+  }
+
+  .wish-main {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 8vw, 72px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.1;
+    margin-bottom: 40px;
+  }
+
+  .wish-main .highlight {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .wish-letter {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 40px;
+    position: relative;
+    text-align: left;
+    margin-bottom: 40px;
+    overflow: hidden;
+  }
+
+  .wish-letter::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .wish-letter::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--rose), transparent);
+  }
+
+  .wish-dear {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-style: italic;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .wish-para {
+    font-size: 15px;
+    line-height: 2;
+    color: rgba(253,246,238,0.82);
+    margin-bottom: 16px;
+  }
+
+  .wish-sign {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-style: italic;
+    color: var(--rose);
+    margin-top: 24px;
+    display: block;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    margin-top: 32px;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-gold {
+    background: linear-gradient(135deg, #c9a84c, #f0d080, #c9a84c);
+    color: #1a0a10;
+    box-shadow: 0 4px 30px rgba(201,168,76,0.4);
+  }
+
+  .btn-gold:hover { box-shadow: 0 8px 40px rgba(201,168,76,0.6); }
+
+  .btn-whatsapp {
+    background: linear-gradient(135deg, #128C7E, #25D366);
+    color: white;
+    box-shadow: 0 4px 30px rgba(37,211,102,0.3);
+  }
+
+  .btn-whatsapp:hover { box-shadow: 0 8px 40px rgba(37,211,102,0.5); }
+
+  .btn-ghost {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    color: var(--cream);
+  }
+
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 32px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(201,168,76,0.95);
+    color: #1a0a10;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-size: 13px;
+    letter-spacing: 1px;
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 999;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── SCENE 5: FINALE ── */
+  #scene-finale {
+    background: radial-gradient(ellipse at 50% 50%, #1f050f 0%, #080308 70%);
+    text-align: center;
+  }
+
+  .finale-tagline {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+
+  .finale-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(40px, 10vw, 100px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 24px;
+  }
+
+  .finale-title span {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--rose), var(--gold));
+    background-size: 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 4s linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+
+  .finale-sub {
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: rgba(253,246,238,0.5);
+    margin-bottom: 48px;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── GENERAL ANIMATIONS ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 32px auto;
+    max-width: 320px;
+    width: 100%;
+  }
+
+  .divider-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-light));
+  }
+
+  .divider-line.r {
+    background: linear-gradient(90deg, var(--gold-light), transparent);
+  }
+
+  .divider-gem { font-size: 14px; color: var(--gold); }
+
+  /* ── STARS ── */
+  .star-field {
+    position: absolute; inset: 0;
+    pointer-events: none; overflow: hidden;
+  }
+
+  .star-dot {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%,100% { opacity: 0.1; }
+    50% { opacity: 0.9; }
+  }
+
+  /* Mobile */
+  @media (max-width: 480px) {
+    .memory-grid { grid-template-columns: repeat(2, 1fr); }
+    .wish-letter { padding: 24px; }
+    .btn { padding: 12px 22px; font-size: 11px; }
+  }
+  /* .footer {
+  background: #0f172a;
+  color: #e2e8f0;
+  text-align: center;
+  padding: 20px 10px;
+  font-family: 'Poppins', sans-serif;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+.footer p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.footer .credit {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* Optional hover effect */
+/* .footer .credit:hover {
+  color: #38bdf8;
+  transition: 0.3s; */
+ */
+/* ── FOOTER ── */
+.site-footer {
+  position: relative;
+  z-index: 10;
+  padding: 40px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, #080308 0%, #120510 100%);
+  border-top: 1px solid var(--glass-border);
+}
+
+.footer-content {
+  max-width: 600px;
+  margin: auto;
+}
+
+.footer-line {
+  width: 120px;
+  height: 1px;
+  margin: 0 auto 20px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.footer-text {
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: rgba(253,246,238,0.6);
+}
+
+.footer-text .brand {
+  color: var(--gold);
+  font-weight: 400;
+}
+
+.footer-sub {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(253,246,238,0.4);
+  text-transform: uppercase;
+}
+
+/* subtle glow on hover */
+.site-footer:hover .footer-line {
+  background: linear-gradient(90deg, transparent, var(--gold-light), transparent);
+  transition: 0.4s;
+}
+</style>
+</head>
+<body>
+
+<!-- CANVAS FIREWORKS -->
+<canvas id="fireworks-canvas"></canvas>
+
+<!-- PARTICLES -->
+<div id="particle-field"></div>
+
+<!-- CINEMATIC BARS -->
+<div id="cinematic-bars">
+  <div class="bar-top" id="barTop"></div>
+  <div class="bar-bottom" id="barBottom"></div>
+</div>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div class="pre-title">A friendship Story</div>
+  <div class="pre-line"></div>
+  <div class="pre-sub">For the one who made friendship feel special</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<main>
+
+  <!-- ══ SCENE 1: OPENING ══ -->
+  <section id="scene-opening">
+    <div class="star-field" id="starField1"></div>
+
+    <!-- Rose Petals -->
+    <div id="petals"></div>
+
+    <div class="opening-date" id="openingDate">Today a soul was born that made my world brighter with friendship.</div>
+
+    <div class="opening-title">
+      Happy<br>
+      <em>Birthday</em><br>
+      My friend
+    </div>
+
+    <div class="opening-sub">A Cinematic Celebration of You</div>
+
+    <div class="scroll-hint">
+      <span>Our Story Begins</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <!-- ══ SCENE 2: OUR STORY ══ -->
+  <section id="scene-story">
+    <div class="chapter-label reveal">Chapter I &nbsp;·&nbsp; The Moment I Knew</div>
+
+    <div class="story-block">
+      <div class="story-quote reveal">
+        "Before you, everything was normal.<br>After you, life got better with a true friend."
+      </div>
+
+      <div class="gold-line reveal"></div>
+
+      <p class="story-body reveal">
+        There are moments in life that quietly shape who we become — without any warning.
+Meeting you wasn’t just a moment, it became a lifetime. From childhood to now, through every laugh,
+ every problem, every phase — you’ve been a constant.
+ More than just a friend, you’re a part of my story that can never be replaced.
+      </p>
+
+      <div class="heart-wrap reveal">
+        <svg class="heart-svg" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+          <path d="M50 85 C50 85 5 55 5 28 C5 12 17 2 30 2 C38 2 46 7 50 14 C54 7 62 2 70 2 C83 2 95 12 95 28 C95 55 50 85 50 85Z"
+            fill="url(#heartGrad)" />
+          <defs>
+            <radialGradient id="heartGrad" cx="50%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#ff7090"/>
+              <stop offset="100%" stop-color="#c0204a"/>
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <p class="story-body reveal">
+        Every laugh we've shared has been a memory. Every silent moment, a chapter.
+And today — your birthday — is one of the most special pages in our 22+ years of friendship.
+
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ SCENE 3: MEMORIES ══ -->
+  <section id="scene-memories">
+    <div class="chapter-label reveal">Chapter II &nbsp;·&nbsp; The Things I Treasure</div>
+
+    <div class="divider reveal">
+      <div class="divider-line"></div>
+      <div class="divider-gem">✦</div>
+      <div class="divider-line r"></div>
+    </div>
+
+    <div class="memory-grid reveal">
+      <div class="memory-card">
+        <div class="memory-icon">🌙</div>
+        <div class="memory-text">“From childhood till now — 22+ years of friendship and conversations that never fade.”</div>
+      </div>
+      <div class="memory-card">
+        <div class="memory-icon">☕</div>
+        <div class="memory-text">Quiet mornings that feel like childhood and forever friendship.</div>
+      </div>
+      <div class="memory-card">
+        <div class="memory-icon">🌧️</div>
+        <div class="memory-text">Rainy days that were somehow perfect with my oldest friend</div>
+      </div>
+      <div class="memory-card">
+        <div class="memory-icon">😂</div>
+        <div class="memory-text">Laughs so deep they echo from our childhood memories and stay forever in my heart.</div>
+      </div>
+      <div class="memory-card">
+        <div class="memory-icon">🌹</div>
+        <div class="memory-text">Every time you smiled, it brought back our childhood memories and brightened the moment.</div>
+      </div>
+      <div class="memory-card">
+        <div class="memory-icon">💫</div>
+        <div class="memory-text">Childhood moments that felt like pure friendship magic ✨</div>
+      </div>
+    </div>
+
+    <p class="story-body reveal" style="max-width:520px;text-align:center;">
+      Every memory I hold is colored by you. You are not just in my happiest moments —
+      you <em>are</em> my happiest moments.
+    </p>
+  </section>
+
+  <!-- ══ SCENE 4: WISH ══ -->
+  <section id="scene-wish">
+    <div class="wish-container">
+      <div class="wish-heading reveal">Chapter III &nbsp;·&nbsp; My Birthday Wish For You</div>
+
+      <div class="wish-main reveal">
+        May your day be as bright<br>
+        <span class="highlight">wonderful</span> as your friendship ✨
+      </div>
+
+      <div class="wish-letter reveal">
+        <span class="wish-dear">My dearest friend,</span>
+
+        <p class="wish-para">
+         On this day, something truly special happened — the world got you.
+And since then, everyone lucky enough to know you has felt that difference.
+You bring warmth, positivity and a kind of light that makes everything better.
+I’m really grateful to have you in my life as a friend.
+        </p>
+
+        <p class="wish-para">
+         Today I wish you the kind of joy that fills your heart until it overflows. 
+         I wish you the comfort of being truly understood and appreciated just as you are.
+          I wish you a year ahead that feels like your favorite
+          journey — full of laughter, growth and the best kind of surprises with friends by your side.
+        </p>
+
+        <p class="wish-para">
+          “Thank you for choosing me as your friend. Thank you for your patience,
+           your laughter, your kindness and your strength. Thank you for being the reason
+           I smile even before my day begins. Your friendship is truly one of the best gifts in my life.”
+        </p>
+
+        <p class="wish-para">
+          Happy Birthday, my friend. Here is to you — all of you, forever.
+        </p>
+
+        <span class="wish-sign">— Yours, always &nbsp;♥</span>
+      </div>
+
+      <div class="btn-row reveal">
+        <button class="btn btn-gold" onclick="triggerFireworks()">
+          <span>🎆</span> Launch Fireworks
+        </button>
+        <a class="btn btn-whatsapp" id="waBtn" href="#" onclick="shareWhatsApp(event)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+          </svg>
+          Share on WhatsApp
+        </a>
+        <button class="btn btn-ghost" onclick="copyMessage()">
+          📋 Copy Wish
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SCENE 5: FINALE ══ -->
+  <section id="scene-finale">
+    <div class="star-field" id="starField2"></div>
+
+    <div class="finale-tagline reveal">The End &nbsp;·&nbsp; And The Beginning</div>
+
+    <div class="finale-title reveal">
+      <span>Happy Birthday krisha,<br>endlessly.</span>
+    </div>
+
+    <div class="finale-sub reveal">Every year. Every day. Every moment.</div>
+
+    <div class="divider reveal">
+      <div class="divider-line"></div>
+      <div class="divider-gem">♥</div>
+      <div class="divider-line r"></div>
+    </div>
+
+    <div class="btn-row reveal">
+      <button class="btn btn-gold" onclick="triggerFireworks(); triggerFireworks();">
+        🎇 Grand Finale
+      </button>
+    </div>
+  </section>
+  <footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-line"></div>
+
+    <p class="footer-text">
+      <span class="brand"> Rajan G. All Rights Reserved | Dedicated to Krisha | Crafted with friendship ✦ </span>. 
+    </p>
+
+    
+  </div>
+</footer>
+</main>
+
+<script>
+// ════════════════════════════════════════
+//  PRELOADER + CINEMATIC INTRO
+// ════════════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('preloader').classList.add('fade-out');
+    setTimeout(() => {
+      document.getElementById('preloader').style.display = 'none';
+      document.getElementById('barTop').classList.add('open');
+      document.getElementById('barBottom').classList.add('open');
+      setTimeout(spawnPetals, 1000);
+      setTimeout(triggerFireworks, 4000);
+    }, 800);
+  }, 2600);
+});
+
+// ════════════════════════════════════════
+//  FIREWORKS ENGINE
+// ════════════════════════════════════════
+const canvas = document.getElementById('fireworks-canvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let fireworksActive = false;
+let fwTimeout = null;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+class Firework {
+  constructor() {
+    this.x = Math.random() * canvas.width;
+    this.y = canvas.height;
+    this.tx = Math.random() * canvas.width * 0.8 + canvas.width * 0.1;
+    this.ty = Math.random() * canvas.height * 0.5 + 50;
+    this.speed = 8 + Math.random() * 6;
+    this.angle = Math.atan2(this.ty - this.y, this.tx - this.x);
+    this.vx = Math.cos(this.angle) * this.speed;
+    this.vy = Math.sin(this.angle) * this.speed;
+    this.exploded = false;
+    this.alpha = 1;
+    this.trail = [];
+    this.color = `hsl(${Math.random() * 60 + 10},100%,70%)`;
+  }
+
+  update() {
+    this.trail.push({x: this.x, y: this.y});
+    if (this.trail.length > 12) this.trail.shift();
+    this.x += this.vx;
+    this.y += this.vy;
+    const dist = Math.hypot(this.tx - this.x, this.ty - this.y);
+    if (dist < 10) {
+      this.exploded = true;
+      explode(this.x, this.y, this.color);
+    }
+  }
+
+  draw() {
+    this.trail.forEach((p, i) => {
+      const a = (i / this.trail.length) * 0.6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,220,150,${a})`;
+      ctx.fill();
+    });
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+  }
+}
+
+class Spark {
+  constructor(x, y, color) {
+    this.x = x; this.y = y;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1 + Math.random() * 7;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.alpha = 1;
+    this.decay = 0.012 + Math.random() * 0.018;
+    this.gravity = 0.12;
+    this.radius = 1.5 + Math.random() * 2;
+    this.color = color;
+    this.trail = [];
+  }
+
+  update() {
+    this.trail.push({x: this.x, y: this.y});
+    if (this.trail.length > 8) this.trail.shift();
+    this.vx *= 0.98;
+    this.vy *= 0.98;
+    this.vy += this.gravity;
+    this.x += this.vx;
+    this.y += this.vy;
+    this.alpha -= this.decay;
+  }
+
+  draw() {
+    this.trail.forEach((p, i) => {
+      const a = (i / this.trail.length) * this.alpha * 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, this.radius * 0.6, 0, Math.PI * 2);
+      ctx.fillStyle = this.color.replace(')', `,${a})`).replace('hsl', 'hsla');
+      ctx.fill();
+    });
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fillStyle = this.color.replace(')', `,${this.alpha})`).replace('hsl', 'hsla');
+    ctx.fill();
+  }
+}
+
+function explode(x, y, baseColor) {
+  const count = 90 + Math.floor(Math.random() * 40);
+  const hue = parseInt(baseColor.match(/\d+/)[0]);
+  for (let i = 0; i < count; i++) {
+    const colorVariant = `hsl(${hue + Math.random() * 30 - 15},${80 + Math.random() * 20}%,${60 + Math.random() * 20}%)`;
+    particles.push(new Spark(x, y, colorVariant));
+  }
+  // Glitter burst
+  for (let i = 0; i < 20; i++) {
+    const s = new Spark(x, y, 'hsl(50,100%,90%)');
+    s.radius = 0.8;
+    s.decay = 0.02;
+    particles.push(s);
+  }
+}
+
+let fireworks = [];
+function launchFirework() {
+  fireworks.push(new Firework());
+}
+
+function animateFireworks() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  fireworks = fireworks.filter(fw => !fw.exploded);
+  fireworks.forEach(fw => { fw.update(); fw.draw(); });
+
+  particles = particles.filter(p => p.alpha > 0);
+  particles.forEach(p => { p.update(); p.draw(); });
+
+  requestAnimationFrame(animateFireworks);
+}
+animateFireworks();
+
+function triggerFireworks() {
+  clearTimeout(fwTimeout);
+  let count = 0;
+  const max = 10 + Math.floor(Math.random() * 6);
+  const burst = () => {
+    if (count >= max) return;
+    launchFirework();
+    count++;
+    setTimeout(burst, 180 + Math.random() * 220);
+  };
+  burst();
+  fwTimeout = setTimeout(() => {}, 5000);
+}
+
+// ════════════════════════════════════════
+//  PARTICLES / FLOATING DUST
+// ════════════════════════════════════════
+const pf = document.getElementById('particle-field');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const sz = 1 + Math.random() * 3;
+  p.style.cssText = `
+    width:${sz}px;height:${sz}px;
+    left:${Math.random()*100}%;
+    animation-duration:${8+Math.random()*14}s;
+    animation-delay:${Math.random()*12}s;
+  `;
+  pf.appendChild(p);
+}
+
+// ════════════════════════════════════════
+//  ROSE PETALS
+// ════════════════════════════════════════
+function spawnPetals() {
+  const container = document.getElementById('petals');
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      animation-duration:${6+Math.random()*8}s;
+      animation-delay:${Math.random()*10}s;
+      transform:rotate(${Math.random()*360}deg) scale(${0.5+Math.random()*1});
+      opacity:0.7;
+    `;
+    container.appendChild(p);
+  }
+}
+
+// ════════════════════════════════════════
+//  STAR FIELDS
+// ════════════════════════════════════════
+function makeStars(id, count) {
+  const el = document.getElementById(id);
+  for (let i = 0; i < count; i++) {
+    const s = document.createElement('div');
+    s.className = 'star-dot';
+    const sz = 0.5 + Math.random() * 2;
+    s.style.cssText = `
+      width:${sz}px;height:${sz}px;
+      left:${Math.random()*100}%;top:${Math.random()*100}%;
+      animation-duration:${2+Math.random()*4}s;
+      animation-delay:${Math.random()*4}s;
+    `;
+    el.appendChild(s);
+  }
+}
+makeStars('starField1', 80);
+makeStars('starField2', 60);
+
+// ════════════════════════════════════════
+//  SCROLL REVEAL
+// ════════════════════════════════════════
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+reveals.forEach(r => observer.observe(r));
+
+// ════════════════════════════════════════
+//  WHATSAPP SHARE
+// ════════════════════════════════════════
+function shareWhatsApp(e) {
+  e.preventDefault();
+  const msg = encodeURIComponent(
+    `🎂✨ Happy Birthday, my love! ✨🎂\n\n` +
+    `On this beautiful day, I want the whole world to know how much you mean to me.\n\n` +
+    `Before you, I was living. After you, I began to feel.\n\n` +
+    `I wish you a day as radiant as your smile, as warm as your heart, and as wonderful as you are. ` +
+    `You deserve every beautiful thing this world has to offer.\n\n` +
+    `Thank you for being my greatest gift. Happy Birthday, beautiful. 🌹\n\n` +
+    `— Yours, always ♥`
+  );
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ════════════════════════════════════════
+//  COPY WISH
+// ════════════════════════════════════════
+function copyMessage() {
+  const text = `Happy Birthday, my love! 🎂\n\nOn this day, the universe did something extraordinary — it brought you into existence. You are my greatest gift.\n\nI wish you joy that overflows, love that never fades, and a year ahead full of everything beautiful.\n\nHappy Birthday. I love you, endlessly.\n— Yours, always ♥`;
+  navigator.clipboard.writeText(text).then(() => showToast('✦ Wish copied to clipboard')).catch(() => showToast('✦ Copied!'));
+}
+
+// ════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+document.querySelector('.footer-text').innerHTML =
+  `© ${new Date().getFullYear()} <span class="brand"> Rajan G. All Rights Reserved | Dedicated to Krisha </span>.`;
+</script>
+</body>
+</html>

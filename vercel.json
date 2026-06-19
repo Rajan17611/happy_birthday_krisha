@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/happy birthday krisha .html"
+    }
+  ]
+}
